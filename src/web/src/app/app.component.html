@@ -1,0 +1,119 @@
+<div class="layout">
+  <aside class="library">
+    <div class="brand">
+      <span class="logo">A</span>
+      <div>
+        <strong>AskDocs</strong>
+        <small>Chat with your documents</small>
+      </div>
+    </div>
+
+    <label class="dropzone" [class.dragging]="dragging()"
+           (dragover)="$event.preventDefault(); dragging.set(true)" (dragleave)="dragging.set(false)" (drop)="onDrop($event)">
+      <input type="file" accept=".pdf,.txt,.md" multiple (change)="onFiles($any($event.target).files); $any($event.target).value = ''">
+      <span class="dz-icon">⇪</span>
+      <span>{{ uploading() ? 'Uploading…' : 'Drop PDF, TXT or MD files' }}</span>
+      <small>or click to browse · up to 25 MB</small>
+    </label>
+    @if (uploadError()) { <p class="error-text">{{ uploadError() }}</p> }
+
+    <div class="lib-head">
+      <span>Library</span>
+      <small>{{ selected().size ? selected().size + ' selected' : 'searching all' }}</small>
+    </div>
+
+    <ul class="docs">
+      @for (d of documents(); track d.id) {
+        <li [class.selected]="selected().has(d.id)">
+          <label>
+            <input type="checkbox" [checked]="selected().has(d.id)" [disabled]="d.status !== 'Ready'" (change)="toggle(d.id)">
+            <span class="doc-main">
+              <span class="doc-name" [title]="d.fileName">{{ d.fileName }}</span>
+              <span class="doc-meta">
+                @switch (d.status) {
+                  @case ('Ready') { {{ d.pageCount }} page{{ d.pageCount === 1 ? '' : 's' }} · {{ d.chunkCount }} chunks · {{ sizeLabel(d.sizeBytes) }} }
+                  @case ('Failed') { <span class="error-text" [title]="d.error ?? ''">Failed: {{ d.error }}</span> }
+                  @default { <span class="pulse">{{ d.status === 'Queued' ? 'Queued' : 'Indexing' }}…</span> }
+                }
+              </span>
+            </span>
+          </label>
+          <button class="icon" (click)="remove(d)" title="Remove document" aria-label="Remove document">✕</button>
+        </li>
+      } @empty {
+        <li class="empty">No documents yet. Try the files in <code>samples/</code>.</li>
+      }
+    </ul>
+
+    <footer class="provider" title="Configured in appsettings.json → AI:Provider">
+      <span class="dot"></span> {{ provider() }}
+    </footer>
+  </aside>
+
+  <main class="chat">
+    <header class="chat-head">
+      <div>
+        <h1>Ask your documents</h1>
+        <p>Answers are grounded in your files and cite the exact page.</p>
+      </div>
+      @if (messages().length) { <button class="ghost" (click)="newChat()">New chat</button> }
+    </header>
+
+    <section class="thread" #thread>
+      @if (!messages().length) {
+        <div class="welcome">
+          <h2>{{ readyCount() ? 'What would you like to know?' : 'Upload a document to get started' }}</h2>
+          <p>AskDocs finds the most relevant passages with hybrid search (keywords + embeddings) and answers only from them.</p>
+          @if (readyCount()) {
+            <div class="suggestions">
+              @for (s of suggestions; track s) { <button (click)="send(s)">{{ s }}</button> }
+            </div>
+          }
+        </div>
+      }
+
+      @for (m of messages(); track $index) {
+        <article class="msg" [class.user]="m.role === 'user'">
+          @if (m.role === 'user') {
+            <div class="bubble">{{ m.text }}</div>
+          } @else {
+            <div class="answer">
+              @if (!m.text && m.streaming) { <span class="typing"><i></i><i></i><i></i></span> }
+              <p class="answer-text">@for (p of parts(m.text); track $index) {@if (p.kind === 'text') {{{ p.text }}} @else {<button class="cite" [class.active]="activeCitation() === citationFor(m, p.n)" (click)="activeCitation.set(citationFor(m, p.n) ?? null)" [disabled]="!citationFor(m, p.n)">{{ p.n }}</button>}}@if (m.streaming && m.text) {<span class="caret"></span>}</p>
+              @if (m.error) { <p class="error-text">{{ m.error }}</p> }
+              @if (m.citations.length && !m.streaming) {
+                <div class="sources">
+                  @for (c of m.citations; track c.number) {
+                    <button class="source" [class.active]="activeCitation() === c" (click)="activeCitation.set(activeCitation() === c ? null : c)">
+                      <b>{{ c.number }}</b> {{ c.documentName }} · p.{{ c.pageNumber }}
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </article>
+      }
+    </section>
+
+    @if (activeCitation(); as c) {
+      <section class="citation-panel">
+        <header>
+          <b>[{{ c.number }}] {{ c.documentName }}</b> <span>page {{ c.pageNumber }}</span>
+          <button class="icon" (click)="activeCitation.set(null)" aria-label="Close source">✕</button>
+        </header>
+        <blockquote>{{ c.snippet }}</blockquote>
+      </section>
+    }
+
+    <form class="composer" (ngSubmit)="send()">
+      <textarea name="q" [(ngModel)]="question" rows="1" placeholder="Ask a question about your documents…"
+                (keydown.enter)="onEnter($any($event))" [disabled]="!readyCount()"></textarea>
+      @if (busy()) {
+        <button type="button" class="send stop" (click)="stop()">Stop</button>
+      } @else {
+        <button type="submit" class="send" [disabled]="!question.trim() || !readyCount()">Ask</button>
+      }
+    </form>
+  </main>
+</div>

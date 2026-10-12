@@ -1,0 +1,26 @@
+# Offline demo (no model needed):        docker compose up --build
+# With a local LLM via Ollama:           AI_PROVIDER=Ollama AI_EMBEDDINGS=Ollama docker compose --profile ollama up --build
+#                                        then once: docker compose exec ollama ollama pull llama3.2 && docker compose exec ollama ollama pull nomic-embed-text
+# With Claude:                           AI_PROVIDER=Claude ANTHROPIC_API_KEY=... docker compose up --build
+services:
+  askdocs:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      AI__Provider: ${AI_PROVIDER:-Extractive}
+      AI__Embeddings: ${AI_EMBEDDINGS:-Hashing}
+      AI__Ollama__BaseUrl: http://ollama:11434
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    volumes:
+      - askdocs-data:/data
+
+  ollama:
+    image: ollama/ollama:0.40.3
+    profiles: [ollama]
+    volumes:
+      - ollama-models:/root/.ollama
+
+volumes:
+  askdocs-data:
+  ollama-models:

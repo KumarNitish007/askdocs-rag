@@ -1,0 +1,10 @@
+**/bin/
+**/obj/
+**/node_modules/
+**/.angular/
+**/App_Data/
+src/AskDocs.Api/wwwroot/
+.git/
+.env
+docs/
+tests/

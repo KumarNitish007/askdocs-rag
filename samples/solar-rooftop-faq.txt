@@ -1,0 +1,21 @@
+Rooftop Solar for Homes - Frequently Asked Questions (fictional sample)
+
+This FAQ is an illustrative sample written for the AskDocs demo. Figures are examples, not official guidance.
+
+How much roof area does a 3 kW system need?
+A 3 kW rooftop system typically needs about 25 to 30 square metres of shade-free roof area. Each kilowatt of panels needs roughly 9 to 10 square metres.
+
+How much electricity will a 3 kW system generate?
+In most of India a well-placed 3 kW system generates about 12 to 14 units (kWh) per day, or roughly 4,000 to 4,500 units per year, depending on location, tilt and shading.
+
+What is net metering?
+Net metering lets you export surplus solar electricity to the grid. The meter records both import and export, and you are billed only for the net units consumed in the billing cycle.
+
+How long do panels last?
+Good quality panels carry a performance warranty of 25 years, typically guaranteeing at least 80 percent of rated output at the end of that period. Inverters usually need replacement once, around year 10 to 12.
+
+How often should panels be cleaned?
+Clean panels every two to four weeks in dusty areas, using plain water and a soft brush. Avoid cleaning at midday when the glass is hot.
+
+Will the system work during a power cut?
+A standard on-grid system shuts down during a power cut for the safety of line workers. To keep power during outages you need a hybrid inverter with a battery.
